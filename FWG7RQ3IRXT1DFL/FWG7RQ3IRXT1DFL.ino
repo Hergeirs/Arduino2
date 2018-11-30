@@ -1,30 +1,31 @@
 
 /*
- * Libraries
- */
+   Libraries
+*/
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
- 
+
+
 /*
- * Definitions
- */
+   Definitions
+*/
 #define SSID        "Kristmund Hotspot"
 #define PASSWORD    "skopun240"
-#define HOST_NAME   "www.google.com"
-#define HOST_PORT   (80)
- 
+#define HOST_NAME   "192.168.137.163"
+#define HOST_PORT   (1025)
+
 /*
- * Declarations
- */
+   Declarations
+*/
 SoftwareSerial mySerial(2, 3); /* RX:D4, TX:D3 */
 ESP8266 wifi(mySerial, 115200);
 uint32_t len;
- 
+
 void setup() {
   //Init debug serial connection
   Serial.begin(9600);
   Serial.println("Serial connection setup [DONE]");
- 
+
   //Init WiFi
   while (true) {
     Serial.println("WiFi setup [START]");
@@ -42,23 +43,81 @@ void setup() {
     //If init failed, wait 20s and try again
     delay(20000);
   }
-}
- 
-void loop() {   
-  uint8_t buffer[512] = {0};  
-  char *request = "GET /utc/now HTTP/1.1\r\nHost: www.timeapi.org\r\nAccept-Encoding: gzip,deflate\r\nUser-Agent:ESP8266\r\nContent-Type:application/json\r\n\r\n";
-  if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
-    if (wifi.send((const uint8_t*)request, strlen(request))) {
-      Serial.println("Send data [OK]");
+  while (true) {
+    if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
+      break;
     }
     else {
-      Serial.println("Send data [ERR]");
+      Serial.println("Create tcp [ERR]");
+      delay(10000);
     }
   }
-  else {
-    Serial.println("Create tcp [ERR]");
+
+}
+
+
+
+struct Data {
+  public:
+    uint16_t plantId;
+    byte temperature;
+    uint16_t moisture;
+    uint32_t light;
+    byte water;
+};
+
+
+struct Package {
+  union {
+    Data values;
+    uint8_t bytes[10];
+  } data;
+};
+
+
+class DataHandler {
+  private:
+    const uint16_t plantId = 1;
+    Package package;
+
+    void populatePackage() {
+      Data& values = package.data.values;
+      values.plantId = this->plantId;
+      values.temperature = 23;
+      values.moisture = 40;
+      values.light = 100;
+      values.water = 90;
+    }
+
+  public:
+    DataHandler() {
+
+    }
+  public:
+    const Package& getPackage() {
+      populatePackage();
+      return package;
+    }
+};
+
+const DataHandler dataHandler;
+
+
+
+
+void loop() {
+  Package package = dataHandler.getPackage();
+  if (wifi.send(package.data.bytes, sizeof(package.data.bytes))) {
+    Serial.println("Send data [OK]");
   }
-  len = wifi.recv(buffer, sizeof(buffer), 10000);
+  else {
+    Serial.println("Send data [ERR]");
+  }  
+  delay(20000);
+}
+
+/*
+ * len = wifi.recv(buffer, sizeof(buffer), 10000);
   if (len > 0) {
     Serial.print("Received:[");
     for (uint32_t i = 0; i < len; i++) {
@@ -66,11 +125,13 @@ void loop() {
     }
     Serial.print("]\r\n");
   }
- 
+
   if (wifi.releaseTCP()) {
     Serial.println("Release tcp [OK]");
   } else {
     Serial.println("Release tcp [ERR]");
   }
-  delay(20000);
-}
+ * 
+ */
+
+
