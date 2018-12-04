@@ -1,6 +1,10 @@
 #ifndef SOILMOISTURESENSORH
 #define SOILMOISTURESENSORH
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+
+
+
 class SoilMoistureSensor
 {
   private:

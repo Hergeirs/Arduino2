@@ -3,6 +3,9 @@
    Libraries
 */
 #include "ESP8266.h"
+#include "CapacitiveMoistureSensor.h"
+#include "LightSensor.h"
+#include "TemperatureSensor.h"
 #include <SoftwareSerial.h>
 
 
@@ -67,10 +70,10 @@ void setup() {
 struct Data {
   public:
     uint16_t plantId;
-    byte temperature;
-    uint16_t moisture;
+    uint8_t temperature;
+    uint8_t moisture;
     uint32_t light;
-    byte water;
+    uint8_t water;
 };
 
 
@@ -86,19 +89,21 @@ class DataHandler {
   private:
     const uint16_t plantId = 1;
     Package package;
+    const CapacitiveMoistureSensor moisture = CapacitiveMoistureSensor(4, A2);
+    const TemperatureSensor temperature = TemperatureSensor(8, A1);
+    const LightSensor light = LightSensor(13, A0);
 
     void populatePackage() {
       Data& values = package.data.values;
       values.plantId = this->plantId;
-      values.temperature = 23;
-      values.moisture = 40;
-      values.light = 100;
+      values.temperature = temperature.read();
+      values.moisture = moisture.read();
+      values.light = light.read();
       values.water = 90;
     }
 
   public:
     DataHandler() {
-
     }
   public:
     const Package& getPackage() {
@@ -114,6 +119,7 @@ const DataHandler dataHandler;
 
 void loop() {
   Package package = dataHandler.getPackage();
+  
   while (!wifi.send(package.data.bytes, sizeof(package.data.bytes))) {
     Serial.println("Send data [ERR]");
   }

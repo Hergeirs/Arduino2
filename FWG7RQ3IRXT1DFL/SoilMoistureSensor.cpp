@@ -13,6 +13,7 @@ SoilMoistureSensor::SoilMoistureSensor(const uint8_t upperPin, const uint8_t low
 
 unsigned SoilMoistureSensor::read()
 {
+  Serial.println("Reading shit YOH");
 	unsigned reading;
 	// drive a current through the divider
 	digitalWrite(upper_pin_, LOW);

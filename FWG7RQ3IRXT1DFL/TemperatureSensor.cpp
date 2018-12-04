@@ -8,11 +8,12 @@ TemperatureSensor::TemperatureSensor(const uint8_t pinTrigger, const uint8_t rea
 	digitalWrite(triggerPin, HIGH);
 }
 
-const int8_t TemperatureSensor::readCelsius()
+const int8_t TemperatureSensor::TemperatureSensor::read()
 {
+  Serial.println("Reading TEmp YOH");
 	digitalWrite(triggerPin, HIGH);
-	delayMicroseconds(200);
-	uint16_t reading = analogRead(readPin);
+  delay(1000);	
+  uint16_t reading = analogRead(readPin);
 	digitalWrite(triggerPin, LOW);
 	// converting that reading to voltage, for 3.3v arduino use 3.3
 	double voltage = reading * 5.0; // * 0.0009775171;

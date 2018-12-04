@@ -1,6 +1,8 @@
 #ifndef TEMPERATURESENSORH
 #define TEMPERATURESENSORH
 #include <Arduino.h>
+#include <SoftwareSerial.h>
+
 
 class TemperatureSensor
 {
@@ -11,7 +13,7 @@ class TemperatureSensor
   public:
 	TemperatureSensor(const uint8_t pinTrigger, const uint8_t readPin);
 
-	const int8_t readCelsius();
+	const int8_t read();
 };
 
 #endif
