@@ -12,7 +12,7 @@
 #define SSID        "Kristmund Hotspot"
 #define PASSWORD    "skopun240"
 #define HOST_NAME   "192.168.137.163"
-#define HOST_PORT   (1025)
+#define HOST_PORT   (8080)
 
 /*
    Declarations
@@ -25,6 +25,9 @@ void setup() {
   //Init debug serial connection
   Serial.begin(9600);
   Serial.println("Serial connection setup [DONE]");
+  Serial.println("Allowing ESP8266 time to start...");
+  delay(10000);
+ 
 
   //Init WiFi
   while (true) {
@@ -52,6 +55,10 @@ void setup() {
       delay(10000);
     }
   }
+
+  Serial.println(wifi.getVersion());
+  Serial.println(wifi.getAPList());
+
 
 }
 
@@ -107,13 +114,13 @@ const DataHandler dataHandler;
 
 void loop() {
   Package package = dataHandler.getPackage();
-  if (wifi.send(package.data.bytes, sizeof(package.data.bytes))) {
-    Serial.println("Send data [OK]");
-  }
-  else {
+  while (!wifi.send(package.data.bytes, sizeof(package.data.bytes))) {
     Serial.println("Send data [ERR]");
-  }  
-  delay(20000);
+  }
+  Serial.println("Send data [YESMAN]");
+  
+  
+  delay(5000);
 }
 
 /*
