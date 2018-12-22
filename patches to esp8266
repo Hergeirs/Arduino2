@@ -1,0 +1,21 @@
+
+    /**
+     * Set ESP8266 to sleep mode for milliseconds
+     * 
+     * Actually sending "AT+GSLP=@milliseconds" to ESP8266
+     * 
+     * @retval response from ESP8266
+     */
+     String deepSleep(uint32_t milliSeconds);
+
+
+
+
+
+
+String ESP8266::deepSleep(uint32_t milliSeconds) {
+  m_puart->print("AT+GSLP=");
+  m_puart-> println(milliSeconds);
+  return recvString("\n","\r");
+}
+

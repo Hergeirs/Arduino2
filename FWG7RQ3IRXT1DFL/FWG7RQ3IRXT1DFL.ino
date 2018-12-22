@@ -80,7 +80,7 @@ struct Data {
 struct Package {
   union {
     Data values;
-    uint8_t bytes[10];
+    uint8_t bytes[9];
   } data;
 };
 
