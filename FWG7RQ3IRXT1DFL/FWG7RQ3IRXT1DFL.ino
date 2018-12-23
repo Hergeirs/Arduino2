@@ -1,7 +1,3 @@
-
-/*
-   Libraries
-*/
 #include "ESP8266.h"
 #include "CapacitiveMoistureSensor.h"
 #include "LightSensor.h"
