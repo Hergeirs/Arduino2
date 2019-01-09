@@ -50,9 +50,17 @@ void setup() {
       Serial.println("WiFi setup [AP ERR]");
     }
     //If init failed, wait 20s and try again
-    delay(20000);
+    delay(5000);
   }
 
+  while(!wifi.createTCP(HOST_NAME,HOST_PORT)) {
+    Serial.print("reCreating TCP connection to server: ");
+    Serial.print(HOST_NAME);
+    Serial.print(" on port ");
+    Serial.println(HOST_PORT);
+    delay(2000);
+  }
+  Serial.println("TCP creation success");  
   Serial.println(wifi.getVersion());  
   Serial.println(wifi.getAPList());
   
@@ -117,13 +125,6 @@ void loop() {
 
   // pump water if moisture percent goes below 30
   moisturePump.pump(30);
-
-  while(!wifi.createTCP(HOST_NAME,HOST_PORT)) {
-    Serial.print("reCreating TCP connection to server: ");
-    Serial.print(HOST_NAME);
-    Serial.print(" on port ");
-    Serial.println(HOST_PORT);
-  }
   
   Package package = dataHandler.getPackage();
     
@@ -132,10 +133,6 @@ void loop() {
   }
   Serial.println("Send data [YESMAN]");
 
-  while(!wifi.releaseTCP()) {
-    Serial.println("TCP connection to server won't release.... trying again....");
-  }
-  
   delay((unsigned long)1000);
 }
 
