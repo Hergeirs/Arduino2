@@ -7,14 +7,15 @@
 #include "LightSensor.h"
 #include "TemperatureSensor.h"
 #include <SoftwareSerial.h>
+#include "Pump.h"
 
 
 /*
    Definitions
 */
-#define SSID        "Kristmund Hotspot"
-#define PASSWORD    "skopun240"
-#define HOST_NAME   "192.168.137.163"
+#define SSID        "Husid Von"
+#define PASSWORD    "GudJesusHeilagiAndin"
+#define HOST_NAME   "192.168.1.81"
 #define HOST_PORT   (8080)
 
 /*
@@ -25,6 +26,8 @@ ESP8266 wifi(mySerial, 115200);
 uint32_t len;
 
 void setup() {
+    Serial.begin(9600);
+
   //Init debug serial connection
   Serial.begin(9600);
   Serial.println("Serial connection setup [DONE]");
@@ -49,20 +52,10 @@ void setup() {
     //If init failed, wait 20s and try again
     delay(20000);
   }
-  while (true) {
-    if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
-      break;
-    }
-    else {
-      Serial.println("Create tcp [ERR]");
-      delay(10000);
-    }
-  }
 
-  Serial.println(wifi.getVersion());
+  Serial.println(wifi.getVersion());  
   Serial.println(wifi.getAPList());
-
-
+  
 }
 
 
@@ -80,7 +73,7 @@ struct Data {
 struct Package {
   union {
     Data values;
-    uint8_t bytes[9];
+    uint8_t bytes[sizeof(Data)];
   } data;
 };
 
@@ -89,13 +82,13 @@ class DataHandler {
   private:
     const uint16_t plantId = 1;
     Package package;
-    const CapacitiveMoistureSensor moisture = CapacitiveMoistureSensor(4, A2);
-    const TemperatureSensor temperature = TemperatureSensor(8, A1);
+    const CapacitiveMoistureSensor& moisture;
+    const TemperatureSensor temperature = TemperatureSensor(7, A1);
     const LightSensor light = LightSensor(13, A0);
 
     void populatePackage() {
       Data& values = package.data.values;
-      values.plantId = this->plantId;
+      values.plantId = plantId;
       values.temperature = temperature.read();
       values.moisture = moisture.read();
       values.light = light.read();
@@ -103,30 +96,47 @@ class DataHandler {
     }
 
   public:
-    DataHandler() {
+    DataHandler(const CapacitiveMoistureSensor& moistureSensor):moisture(moistureSensor) 
+    {
     }
   public:
-    const Package& getPackage() {
+    const Package getPackage() {
       populatePackage();
       return package;
     }
 };
 
-const DataHandler dataHandler;
+const CapacitiveMoistureSensor moistureSensor = CapacitiveMoistureSensor(11, A5);
 
+const DataHandler dataHandler(moistureSensor);
 
+const MoisturePump moisturePump(8,moistureSensor);
 
 
 void loop() {
-  Package package = dataHandler.getPackage();
+
+  // pump water if moisture percent goes below 30
+  moisturePump.pump(30);
+
+  while(!wifi.createTCP(HOST_NAME,HOST_PORT)) {
+    Serial.print("reCreating TCP connection to server: ");
+    Serial.print(HOST_NAME);
+    Serial.print(" on port ");
+    Serial.println(HOST_PORT);
+  }
   
+  Package package = dataHandler.getPackage();
+    
   while (!wifi.send(package.data.bytes, sizeof(package.data.bytes))) {
     Serial.println("Send data [ERR]");
   }
   Serial.println("Send data [YESMAN]");
+
+  while(!wifi.releaseTCP()) {
+    Serial.println("TCP connection to server won't release.... trying again....");
+  }
   
-  
-  delay(5000);
+  delay((unsigned long)1000);
 }
 
 /*

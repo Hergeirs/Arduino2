@@ -13,7 +13,7 @@ class TemperatureSensor
   public:
 	TemperatureSensor(const uint8_t pinTrigger, const uint8_t readPin);
 
-	const int8_t read();
+	int8_t read();
 };
 
 #endif

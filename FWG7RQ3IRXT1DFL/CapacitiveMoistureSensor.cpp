@@ -27,6 +27,6 @@ uint8_t CapacitiveMoistureSensor::read()
 	digitalWrite(dPin,HIGH);
 	delay(1000);
     uint16_t val = analogRead(aPin);
-	//digitalWrite(dPin,LOW);
+	digitalWrite(dPin,LOW);
     return readPercent(val);
 }

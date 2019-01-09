@@ -8,7 +8,7 @@ TemperatureSensor::TemperatureSensor(const uint8_t pinTrigger, const uint8_t rea
 	digitalWrite(triggerPin, HIGH);
 }
 
-const int8_t TemperatureSensor::TemperatureSensor::read()
+int8_t TemperatureSensor::TemperatureSensor::read()
 {
   Serial.println("Reading TEmp YOH");
 	digitalWrite(triggerPin, HIGH);
